@@ -1,0 +1,76 @@
+- name: Set inter.broker.protocol.version
+  lineinfile:
+    path: "{{kafka.broker.config_file}}"
+    regexp: 'inter.broker.protocol.version=.*'
+    line: 'inter.broker.protocol.version=2.1'
+
+- name: Set log.message.format.version
+  lineinfile:
+    path: "{{kafka.broker.config_file}}"
+    regexp: 'log.message.format.version=.*'
+    line: 'log.message.format.version=2.1'
+
+- name: Create backup directory
+  file:
+    path: "{{kafka.broker.backup_dir}}"
+    state: directory
+    mode: 0755
+
+# - name: Backup /etc/kafka
+#   shell: \cp /etc/kafka/* /tmp/upgrade-backups/kafka
+
+- name: Backup /etc/kafka
+  copy:
+    src: "{{ item }}"
+    dest: "{{kafka.broker.backup_dir}}/{{ item | basename }}"
+    remote_src: yes
+  with_items:
+    - "{{ kafka.broker.config_file }}"
+    # - "{{ kafka.broker.systemd_file }}"
+
+- name: Stop kafka
+  systemd:
+    name: "{{kafka.broker.service_name}}"
+    state: stopped
+
+- name: Remove confluent-kafka-2.11 package
+  yum:
+    name: confluent-kafka-2.11
+    state: absent
+
+- name: Replace confluent.repo
+  copy:
+    src: confluent.repo
+    dest: /etc/yum.repos.d/confluent.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Refresh repository metadata
+  command: yum clean all
+
+- name: Install new confluent-kafka-2.12 package
+  yum:
+    name: confluent-kafka-2.12
+    state: latest
+
+# - name: Restore /etc/kafka
+#   # To avoid interactive cp
+#   shell: \cp /tmp/upgrade-backups/kafka/* /etc/kafka/
+
+- name: Restore /etc/kafka
+  copy:
+    src: "/tmp/upgrade-backups/kafka/{{ item | basename }}"
+    dest: "{{ item }}"
+    remote_src: yes
+  with_items:
+    - "{{ kafka.broker.config_file }}"
+    # - "{{ kafka.broker.systemd_file }}"
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Restart kafka
+  systemd:
+    name: "{{kafka.broker.service_name}}"
+    state: restarted

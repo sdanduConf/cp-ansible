@@ -1,85 +1,12 @@
 ---
 ## Steps
 
-# Update /etc/kafka/server.properties on all Kafka brokers by modifying the properties to match the currently installed version:
-# For CP 5.1.x, use inter.broker.protocol.version=2.1 and log.message.format.version=2.1
-
-- name: Pre-configure server.properties
-  hosts: broker
-  gather_facts: False
-  tags:
-    - properties
-  tasks:
-  # - name: Set inter.broker.protocol.version
-  #   lineinfile:
-  #     path: /etc/kafka/server.properties
-  #     regexp: 'inter.broker.protocol.version=.*'
-  #     line: 'inter.broker.protocol.version=2.1'
-  #
-  # - name: Set log.message.format.version
-  #   lineinfile:
-  #     path: /etc/kafka/server.properties
-  #     regexp: 'log.message.format.version=.*'
-  #     line: 'log.message.format.version=2.1'
-
-  - name: Create backup directory
-    file:
-      path: /tmp/upgrade-backups/kafka
-      state: directory
-      mode: 0755
-
-  - name: Backup /etc/kafka
-    shell: \cp /etc/kafka/* /tmp/upgrade-backups/kafka
-
-# Backup all configuration files from /etc, including, for example, /etc/kafka, /etc/kafka-rest, and /etc/schema-registry
-
-# Upgrade each Kafka broker, one at a time.
-
 - name: Upgrade Kafka
   hosts: broker
   serial: 1
-  gather_facts: False
   tasks:
-
-  - name: Stop kafka
-    systemd:
-      name: confluent-kafka
-      state: stopped
-
-  - name: Remove confluent-kafka-2.11 package
-    yum:
-      name: confluent-kafka-2.11
-      state: absent
-      #autoremove: yes
-
-  - name: Replace confluent.repo
-    copy:
-      src: confluent.repo
-      dest: /etc/yum.repos.d/confluent.repo
-      owner: root
-      group: root
-      mode: 0644
-
-  - name: Refresh repository metadata
-    command: yum clean all
-
-  - name: Install new confluent-kafka-2.12 package
-    yum:
-      name: confluent-kafka-2.12
-      state: latest
-
-  - name: Restore /etc/kafka
-    # To avoid interactive cp
-    shell: \cp -f /tmp/upgrade-backups/kafka/* /etc/kafka/
-
-  - name: Reload systemd
-    command: systemctl daemon-reload
-
-  - name: Restart kafka
-    systemd:
-      name: confluent-kafka
-      state: restarted
-
+  - import_role:
+      name: confluent.upgrade.kafka-broker
 
 # Eventually fix the properties file
 
