@@ -16,9 +16,6 @@
     state: directory
     mode: 0755
 
-# - name: Backup /etc/kafka
-#   shell: \cp /etc/kafka/* /tmp/upgrade-backups/kafka
-
 - name: Backup /etc/kafka
   copy:
     src: "{{ item }}"
@@ -53,10 +50,6 @@
   yum:
     name: confluent-kafka-2.12
     state: latest
-
-# - name: Restore /etc/kafka
-#   # To avoid interactive cp
-#   shell: \cp /tmp/upgrade-backups/kafka/* /etc/kafka/
 
 - name: Restore /etc/kafka
   copy:

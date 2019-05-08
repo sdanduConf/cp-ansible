@@ -1,6 +1,4 @@
 ---
-## Steps
-
 - name: Upgrade Kafka
   hosts: broker
   serial: 1
