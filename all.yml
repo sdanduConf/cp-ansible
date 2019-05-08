@@ -10,6 +10,7 @@
       name: confluent.ssl_CA
     tags:
       - pre-install
+    when: security_mode == "sasl_ssl" or security_mode == "ssl"
 - hosts: zookeeper
   tasks:
   - import_role:
