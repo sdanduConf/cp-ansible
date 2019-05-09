@@ -36,6 +36,7 @@
   systemd:
     name: "{{kafka.broker.service_name}}"
     state: stopped
+  when: "packages['{{kafka.old_package_name}}'] is defined"
 
 - import_tasks: redhat.yml
   when: ansible_os_family == "RedHat"
