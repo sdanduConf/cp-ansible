@@ -32,7 +32,7 @@
 
 - name: Remove old confluent-kafka package
   yum:
-    name: "{{kafka.new_package_name}}"
+    name: "{{kafka.old_package_name}}"
     state: absent
 
 - name: Remove Confluent Dist Yum Repo
@@ -42,18 +42,18 @@
     state: absent
   notify: yum-clean-all
 
-# - name: Remove Confluent Yum Repo
-#   yum_repository:
-#     name: Confluent
-#     file: confluent
-#     state: absent
-#   notify: yum-clean-all
-
-- name: Correct Confluent Yum Repo
+- name: Remove Old Confluent Yum Repo
   yum_repository:
     name: Confluent
     file: confluent
-    description: "Confluent repository"
+    state: absent
+  notify: yum-clean-all
+
+- name: Add New Confluent Yum Repo
+  yum_repository:
+    name: confluent-5.2
+    file: confluent
+    description: "Confluent repository for 5.2.x packages"
     baseurl: "{{confluent.repository.redhat.main.baseurl}}"
     gpgcheck: "{{confluent.repository.redhat.main.gpgcheck}}"
     gpgkey: "{{confluent.repository.redhat.main.gpgkey}}"
@@ -62,22 +62,13 @@
 
 - meta: flush_handlers
 
-# - name: Replace confluent.repo
-#   copy:
-#     src: confluent.repo
-#     dest: /etc/yum.repos.d/confluent.repo
-#     owner: root
-#     group: root
-#     mode: 0644
-#
-# - name: Refresh repository metadata
-#   command: yum clean all
-
 - name: Install new confluent-kafka package
   yum:
     name: "{{kafka.new_package_name}}"
     state: latest
-  notify: reload systemd
+  notify:
+    - reload systemd
+    - restart kafka
 
 - name: Restore /etc/kafka
   copy:
@@ -88,12 +79,9 @@
     - "{{kafka.broker.config_file}}"
     # - "{{ kafka.broker.systemd_file }}"
 
-# - name: Reload systemd
-#   command: systemctl daemon-reload
-
 - meta: flush_handlers
 
-- name: Restart kafka
-  systemd:
-    name: "{{kafka.broker.service_name}}"
-    state: restarted
+# - name: restart kafka
+#   systemd:
+#     name: "{{kafka.broker.service_name}}"
+#     state: restarted
