@@ -80,8 +80,3 @@
     # - "{{ kafka.broker.systemd_file }}"
 
 - meta: flush_handlers
-
-# - name: restart kafka
-#   systemd:
-#     name: "{{kafka.broker.service_name}}"
-#     state: restarted
