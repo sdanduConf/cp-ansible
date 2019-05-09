@@ -1,3 +1,8 @@
+- name: Remove old confluent-kafka package
+  yum:
+    name: "{{kafka.old_package_name}}"
+    state: absent
+
 - name: Remove Confluent Dist Yum Repo
   yum_repository:
     name: Confluent.dist
