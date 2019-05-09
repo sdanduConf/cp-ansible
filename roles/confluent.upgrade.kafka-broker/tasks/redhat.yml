@@ -1,0 +1,34 @@
+- name: Remove Confluent Dist Yum Repo
+  yum_repository:
+    name: Confluent.dist
+    file: confluent
+    state: absent
+  notify: yum-clean-all
+
+- name: Remove Old Confluent Yum Repo
+  yum_repository:
+    name: Confluent
+    file: confluent
+    state: absent
+  notify: yum-clean-all
+
+- name: Add New Confluent Yum Repo
+  yum_repository:
+    name: confluent-5.2
+    file: confluent
+    description: "Confluent repository for 5.2.x packages"
+    baseurl: "{{confluent.repository.redhat.main.baseurl}}"
+    gpgcheck: "{{confluent.repository.redhat.main.gpgcheck}}"
+    gpgkey: "{{confluent.repository.redhat.main.gpgkey}}"
+    enabled: "{{confluent.repository.redhat.main.enabled}}"
+  notify: yum-clean-all
+
+- meta: flush_handlers
+
+- name: Install new confluent-kafka package
+  yum:
+    name: "{{kafka.new_package_name}}"
+    state: latest
+  notify:
+    - reload systemd
+    - restart kafka
