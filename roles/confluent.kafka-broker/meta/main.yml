@@ -1,3 +1,2 @@
 dependencies:
   - { role: confluent.common }
-  - { role: confluent.variables }
