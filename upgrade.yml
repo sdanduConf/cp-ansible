@@ -6,20 +6,12 @@
   - import_role:
       name: confluent.upgrade.kafka-broker
 
-- name: Update server.properties
+- name: Update Kafka Post Steps
   hosts: broker
   serial: 1
   tasks:
-  - name: Set inter.broker.protocol.version
-    lineinfile:
-      path: "{{kafka.broker.config_file}}"
-      regexp: 'inter.broker.protocol.version=.*'
-      line: 'inter.broker.protocol.version=2.2'
-
-  - name: Restart kafka
-    systemd:
-      name: "{{kafka.broker.service_name}}"
-      state: restarted
+  - import_role:
+      name: confluent.upgrade.kafka-broker-post
 
 
 # Upgrade Schema Registry,

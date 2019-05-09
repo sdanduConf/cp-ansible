@@ -1,3 +1,13 @@
 kafka:
+  old_package_name: confluent-kafka-2.11
+  new_package_name: confluent-kafka-2.12
   broker:
     backup_dir: /tmp/upgrade-backups/kafka
+confluent:
+  repository:
+    redhat:
+      main:
+        baseurl: https://packages.confluent.io/rpm/5.2
+        gpgcheck: 1
+        gpgkey: https://packages.confluent.io/rpm/5.2/archive.key
+        enabled: 1

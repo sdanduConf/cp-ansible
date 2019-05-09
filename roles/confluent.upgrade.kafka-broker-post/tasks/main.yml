@@ -1,0 +1,8 @@
+  - name: Set inter.broker.protocol.version
+    lineinfile:
+      path: "{{kafka.broker.config_file}}"
+      regexp: 'inter.broker.protocol.version=.*'
+      line: 'inter.broker.protocol.version=2.2'
+    notify: restart-kafka
+
+  - meta: flush_handlers

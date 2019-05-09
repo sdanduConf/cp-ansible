@@ -30,38 +30,68 @@
     name: "{{kafka.broker.service_name}}"
     state: stopped
 
-- name: Remove confluent-kafka-2.11 package
+- name: Remove old confluent-kafka package
   yum:
-    name: confluent-kafka-2.11
+    name: "{{kafka.new_package_name}}"
     state: absent
 
-- name: Replace confluent.repo
-  copy:
-    src: confluent.repo
-    dest: /etc/yum.repos.d/confluent.repo
-    owner: root
-    group: root
-    mode: 0644
+- name: Remove Confluent Dist Yum Repo
+  yum_repository:
+    name: Confluent.dist
+    file: confluent
+    state: absent
+  notify: yum-clean-all
 
-- name: Refresh repository metadata
-  command: yum clean all
+# - name: Remove Confluent Yum Repo
+#   yum_repository:
+#     name: Confluent
+#     file: confluent
+#     state: absent
+#   notify: yum-clean-all
 
-- name: Install new confluent-kafka-2.12 package
+- name: Correct Confluent Yum Repo
+  yum_repository:
+    name: Confluent
+    file: confluent
+    description: "Confluent repository"
+    baseurl: "{{confluent.repository.redhat.main.baseurl}}"
+    gpgcheck: "{{confluent.repository.redhat.main.gpgcheck}}"
+    gpgkey: "{{confluent.repository.redhat.main.gpgkey}}"
+    enabled: "{{confluent.repository.redhat.main.enabled}}"
+  notify: yum-clean-all
+
+- meta: flush_handlers
+
+# - name: Replace confluent.repo
+#   copy:
+#     src: confluent.repo
+#     dest: /etc/yum.repos.d/confluent.repo
+#     owner: root
+#     group: root
+#     mode: 0644
+#
+# - name: Refresh repository metadata
+#   command: yum clean all
+
+- name: Install new confluent-kafka package
   yum:
-    name: confluent-kafka-2.12
+    name: "{{kafka.new_package_name}}"
     state: latest
+  notify: reload systemd
 
 - name: Restore /etc/kafka
   copy:
-    src: "/tmp/upgrade-backups/kafka/{{ item | basename }}"
+    src: "{{kafka.broker.backup_dir}}/{{ item | basename }}"
     dest: "{{ item }}"
     remote_src: yes
   with_items:
-    - "{{ kafka.broker.config_file }}"
+    - "{{kafka.broker.config_file}}"
     # - "{{ kafka.broker.systemd_file }}"
 
-- name: Reload systemd
-  command: systemctl daemon-reload
+# - name: Reload systemd
+#   command: systemctl daemon-reload
+
+- meta: flush_handlers
 
 - name: Restart kafka
   systemd:
