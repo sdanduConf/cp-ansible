@@ -53,5 +53,5 @@
   with_items:
     - "{{kafka.broker.config_file}}"
     # - "{{ kafka.broker.systemd_file }}"
-
-- meta: flush_handlers
+# 
+# - meta: flush_handlers
