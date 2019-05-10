@@ -4,5 +4,3 @@
       regexp: 'inter.broker.protocol.version=.*'
       line: 'inter.broker.protocol.version=2.2'
     notify: restart-kafka
-
-  - meta: flush_handlers
