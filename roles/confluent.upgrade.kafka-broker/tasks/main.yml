@@ -1,6 +1,6 @@
 - name: Get rpm package facts
   package_facts:
-    manager: "auto"
+    manager: auto
 
 ## TODO ask about these variables
 - name: Set inter.broker.protocol.version
@@ -8,14 +8,14 @@
     path: "{{kafka.broker.config_file}}"
     regexp: 'inter.broker.protocol.version=.*'
     line: 'inter.broker.protocol.version=2.1'
-  when: "packages['{{kafka.old_package_name}}'] is defined"
+  when: packages['{{kafka.old_package_name}}'] is defined
 
 - name: Set log.message.format.version
   lineinfile:
     path: "{{kafka.broker.config_file}}"
     regexp: 'log.message.format.version=.*'
     line: 'log.message.format.version=2.1'
-  when: "packages['{{kafka.old_package_name}}'] is defined"
+  when: packages['{{kafka.old_package_name}}'] is defined
 
 - name: Create backup directory
   file:
@@ -36,7 +36,7 @@
   systemd:
     name: "{{kafka.broker.service_name}}"
     state: stopped
-  when: "packages['{{kafka.old_package_name}}'] is defined"
+  when: packages['{{kafka.old_package_name}}'] is defined
 
 - import_tasks: redhat.yml
   when: ansible_os_family == "RedHat"
@@ -53,5 +53,3 @@
   with_items:
     - "{{kafka.broker.config_file}}"
     # - "{{ kafka.broker.systemd_file }}"
-# 
-# - meta: flush_handlers
